@@ -47,8 +47,8 @@ class Request:
         except ValueError:
             size = 0
         body = self.env['wsgi.input'].read(size)
-        dic = parse_qs(body)
-        dic = {k.decode(): v[0].decode() for k, v in dic.items() if v}
+        dic = parse_qs(body.decode('utf-8'))
+        dic = {k: v[0] for k, v in dic.items() if v}
         return dic
 
     def set_cookie(self, dic=None, **kwargs):
