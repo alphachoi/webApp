@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Log In{% endblock %}</title>
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    {% block css %}
+    <link href="/static/css/login.css" rel="stylesheet">
+    {% endblock %}
+    <link href="/static/css/footer.css" rel="stylesheet">
+</head>
+<body>
+
+{% block content %}
+<form class="form-signin" method="post">
+    <h3>{% block form_title %}Please Log in{% endblock %}</h3>
+    <br>
+    <input id="inputUserName" class="form-control"
+           placeholder="User Name" name="name" required autofocus>
+    <br>
+    <input type="password" id="inputPassword" class="form-control"
+           placeholder="Password" name="password" required>
+    {% block button %}
+    <button class="btn btn-lg btn-primary btn-block"
+            name="sign_in" type="submit">Log in
+    </button>
+    <br>
+    <a href="/register">Click Me And Go To Register</a>
+    {% endblock %}
+    {% if error is defined %}
+    <div class="alert alert-danger" role="alert">
+        <strong>{{error}}</strong>
+    </div>
+    {% endif %}
+</form>
+{% endblock %}
+
+</body>
+
+<footer class="footer">
+    <div class="container">
+        <p class="text-muted">Python web framework, just for fun!</p>
+    </div>
+</footer>
+</html>

@@ -1,0 +1,17 @@
+{% extends "add_blog.html" %}
+{% block title %}Update Blog{% endblock %}
+
+{% block input %}
+{% macro input(value='', type='', name='') -%}
+<input class="form-control" name="{{ name }}"
+       value="{{ value }}" type="{{ type }}" required>
+{%- endmacro %}
+{{ input(blog.title, name='title', type='text') }}
+{{ input(blog.id, name='id', type='hidden') }}
+{% endblock %}
+
+{% block text %}
+<textarea class="form-control" name="content" rows="8" required>
+    {{ blog.content }}
+</textarea>
+{% endblock %}

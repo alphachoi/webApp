@@ -1,0 +1,24 @@
+{% extends "hello.html" %}
+{% block title %}Add Blog{% endblock %}
+{% block blog %}
+<form action="/post" method="post">
+    <div class="form-group">
+        {% block input %}
+        <input class="form-control" name="title"
+               placeholder="Begin to write your blog" required>
+        {% endblock %}
+    </div>
+
+    <div class="form-group">
+        {% block text %}
+        <textarea class="form-control" name="content"
+                  rows="8" required>
+        </textarea>
+        {% endblock %}
+    </div>
+
+    <button type="submit" class="btn btn-primary">Post</button>
+</form>
+{% endblock %}
+
+
