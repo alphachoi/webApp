@@ -41,7 +41,7 @@ class Request:
             return self.path
 
     @property
-    def form_data(self):
+    def form(self):
         try:
             size = int(self.env.get('CONTENT_LENGTH'))
         except ValueError:

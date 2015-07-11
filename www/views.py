@@ -21,7 +21,7 @@ def md5_hash(value, salt=''):
 def login(request):
     if request.method == 'GET':
         return render_for_response(request, 'log_in.html')
-    dic = request.form_data
+    dic = request.form
     user = User.get(name=dic.get('name'))
     password = md5_hash(dic.get('password', ''), salt=dic.get('name', ''))
     if user is None or user.password != password:
@@ -60,7 +60,7 @@ def hello(request):
 
 
 def register(request):
-    dic = request.form_data
+    dic = request.form
     name = dic.get('name')
     user = User.get(name=name)
     password = dic.get('password')
@@ -111,7 +111,7 @@ def update_blog(request):
 
 
 def post_blog(request):
-    dic = request.form_data
+    dic = request.form
     if 'id' in dic:
         Blog.delete(dic['id'])
     dic['name'] = request.cookie['name'].value
