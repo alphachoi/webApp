@@ -21,13 +21,8 @@ class Request:
         self.header = [('Content-type', 'text/html')]
         self.path = self.env['PATH_INFO']
         self.content = ''
+        self.file = None
         self.cookie = self.get_cookie()
-
-    def get_cookie(self):
-        try:
-            return SimpleCookie(self.env['HTTP_COOKIE'])
-        except KeyError:
-            return SimpleCookie()
 
     @property
     def method(self):
@@ -50,6 +45,12 @@ class Request:
         dic = parse_qs(body.decode('utf-8'))
         dic = {k: v[0] for k, v in dic.items() if v}
         return dic
+
+    def get_cookie(self):
+        try:
+            return SimpleCookie(self.env['HTTP_COOKIE'])
+        except KeyError:
+            return SimpleCookie()
 
     def set_cookie(self, dic=None, **kwargs):
         if dic:
@@ -80,6 +81,8 @@ class Application:
             response = self.delegate()
             assert isinstance(response, Request) is True, 'Invalid Response'
             self.start(response.status, response.header)
+            if response.file:
+                return response.file
             yield response.content.encode()
         except NotFound as e:
             yield self.not_found(str(e)).encode()

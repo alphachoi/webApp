@@ -5,6 +5,7 @@
       <w>blogs</w>
       <w>endblock</w>
       <w>endfor</w>
+      <w>multipart</w>
       <w>referer</w>
       <w>signin</w>
       <w>wsgi</w>

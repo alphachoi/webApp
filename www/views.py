@@ -1,6 +1,7 @@
 # -*-coding:utf-8 -*-
-from hashlib import md5
 import os
+import cgi
+from hashlib import md5
 
 from www.models import User, Blog
 from www import env, signed_cookie
@@ -49,9 +50,10 @@ def hello(request):
             request.header.append(('Location', '/hello/' + blog.id))
             return request
 
+        files = os.listdir(os.path.join(os.getcwd(), 'file'))
         blog = Blog.get(id=request.path.replace('/hello/', ''))
         blogs = Blog.get_all(name=name)
-        return render_for_response(request, 'hello.html',
+        return render_for_response(request, 'hello.html', files=files,
                                    name=name, blog=blog, blogs=blogs)
     except (KeyError, AssertionError):
         request.status = '303 See Other'
@@ -122,7 +124,37 @@ def post_blog(request):
     return request
 
 
-urls = [(r'/', login), (r'/hello.*', hello), (r'/register', register),
-        (r'/static/.+', do_with_static), (r'/add', add_blog),
+def upload(request):
+    form = cgi.FieldStorage(fp=request.env['wsgi.input'],
+                            environ=request.env,
+                            keep_blank_values=True)
+    item = form['file']
+    if item.file:
+        filename = os.path.join(os.getcwd(), 'file', item.filename)
+        with open(filename, 'wb') as f:
+            while True:
+                data = item.file.read(2048)
+                f.write(data)
+                if not data:
+                    break
+    return hello(request)
+
+
+def download(request):
+    path = os.path.join(os.getcwd(), request.path[1:])
+    file = open(path, 'rb')
+    size = os.path.getsize(path)
+    request.header = [('Content-Type', 'application/x-jpg'),
+                      ('Content-length', str(size))]
+    if 'wsgi.file_wrapper' in request.env:
+        request.file = request.env['wsgi.file_wrapper'](file, 1024)
+    else:
+        request.file = iter(lambda: file.read(1024), '')
+    return request
+
+
+urls = [(r'/', login), (r'/hello.*', hello), (r'/add', add_blog),
+        (r'/static/.+', do_with_static), (r'/register', register),
         (r'/post', post_blog), (r'/delete', delete_blog),
-        (r'/update', update_blog)]
+        (r'/update', update_blog), (r'/upload', upload),
+        (r'/file/.+', download)]

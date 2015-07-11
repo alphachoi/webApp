@@ -30,6 +30,13 @@
                 </ul>
             </nav>
             {% endblock %}
+            <form action="/upload" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>File input</label>
+                    <input name="file" type="file">
+                </div>
+                <button type="submit" class="btn btn-default">Submit</button>
+            </form>
         </div>
         <!-- /.blog-main -->
         <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
@@ -38,6 +45,13 @@
                 {% for blog in blogs %}
                 {% set path = '/hello/' + blog.id %}
                 <li><a href={{path}}>{{ blog.title }}</a></li>
+                {% endfor %}
+            </ul>
+            <br>
+            <ul>
+                <li><h4>File List</h4></li>
+                {% for file in files %}
+                <li><a href={{'/file/'+file}}>{{ file }}</a></li>
                 {% endfor %}
             </ul>
         </div>
