@@ -1,7 +1,7 @@
 # -*-coding:utf-8 -*-
 import sys
 
-path = '/root/webApp'
+path = '/root/webApp/www'
 if path not in sys.path:
     sys.path.append(path)
 
