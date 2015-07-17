@@ -3,8 +3,6 @@ import sqlite3
 
 from jinja2 import Environment, PackageLoader
 
-from www.wsgi import Application as application
-
 env = Environment(loader=PackageLoader('www', 'templates'))
 signed_cookie = dict()
 
@@ -35,6 +33,6 @@ if __name__ == '__main__':
 
     from www.wsgi import Application
 
-    server = make_server('', 8080, application)
+    server = make_server('', 8080, Application)
     print('Serving HTTP on port 8080...')
     server.serve_forever()
