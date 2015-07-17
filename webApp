@@ -1,0 +1,22 @@
+upstream django {
+    server 127.0.0.1:8001; # for a web port socket (we'll use this first)
+}
+
+
+server {
+    listen      80; # 监听80端口
+    root       /root/webApp/www;
+    access_log /root/webApp/log/access_log;
+    error_log  /root/webApp/log/error_log;
+    charset     utf-8;
+
+    # 处理静态资源:
+    location /static {
+        alias /root/webApp/www;
+    }
+
+    location / {
+        uwsgi_pass  webApp;
+        include     /root/webApp/uwsgi_params;
+    }
+}
