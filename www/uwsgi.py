@@ -12,6 +12,7 @@ except FileExistsError:
     pass
 
 try:
+    import sqlite3
     from www import create_db
 
     create_db()
