@@ -42,7 +42,7 @@ class Request:
         except ValueError:
             size = 0
         body = self.env['wsgi.input'].read(size)
-        dic = parse_qs(body.decode('utf-8'))
+        dic = parse_qs(body.decode())
         dic = {k: v[0] for k, v in dic.items() if v}
         return dic
 
