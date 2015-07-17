@@ -1,4 +1,5 @@
 # -*-coding:utf-8 -*-
+import os
 import sys
 
 path = '/root/webApp'
@@ -6,11 +7,16 @@ if path not in sys.path:
     sys.path.append(path)
 
 try:
+    os.mkdir(os.path.join(path, 'file'))
+except FileExistsError:
+    pass
+
+try:
     from www import create_db
 
     create_db()
 except sqlite3.OperationalError as e:
-    print(e)
+    pass
 
 from www.wsgi import Application as application
 
