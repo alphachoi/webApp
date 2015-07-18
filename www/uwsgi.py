@@ -2,7 +2,8 @@
 import os
 import sys
 
-path = '/srv/webApp/www'
+path = os.getcwd()
+print(path)
 if path not in sys.path:
     sys.path.append(path)
 
