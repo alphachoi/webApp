@@ -2,9 +2,16 @@
 import os
 import sys
 
-path = '/root/webApp'
+path = '/srv/webApp'
 if path not in sys.path:
     sys.path.append(path)
+
+from www.wsgi import Application
+
+
+def application(env, start_response):
+    return Application(env, start_response)
+
 
 try:
     os.mkdir(os.path.join(path, 'file'))
@@ -18,8 +25,6 @@ try:
     create_db()
 except sqlite3.OperationalError as e:
     pass
-
-from www.wsgi import Application as application
 
 if __name__ == '__main__':
     import sqlite3
