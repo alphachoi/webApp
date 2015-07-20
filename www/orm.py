@@ -149,7 +149,3 @@ class Model(metaclass=Meta):
             sql = 'SELECT * FROM {}'.format(cls.__table__)
             cursor.execute(sql)
         return (cls.get(i[0]) for i in cursor.fetchall())
-
-
-if __name__ == '__main__':
-    pass

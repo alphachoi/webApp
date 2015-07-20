@@ -25,14 +25,4 @@ def create_db():
 
 
 if __name__ == '__main__':
-    try:
-        create_db()
-    except sqlite3.OperationalError as e:
-        print(e)
-    from wsgiref.simple_server import make_server
-
-    from www.wsgi import Application
-
-    server = make_server('', 8080, Application)
-    print('Serving HTTP on port 8080...')
-    server.serve_forever()
+    pass

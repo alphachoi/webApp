@@ -24,8 +24,3 @@ class Blog(Model):
     name = StringField(ddl='varchar(50)')
     title = StringField(ddl='varchar(50)')
     content = TextField()
-
-
-if __name__ == '__main__':
-    for b in Blog.get_all():
-        print(b.title, b.content)

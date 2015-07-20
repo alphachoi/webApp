@@ -93,7 +93,3 @@ class Application:
         status = '404 Not Found'
         self.start(status, [('Content-type', 'text/html')])
         return message
-
-
-if __name__ == '__main__':
-    pass

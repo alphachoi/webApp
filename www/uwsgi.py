@@ -3,7 +3,6 @@ import os
 import sys
 
 path = os.getcwd()
-print(path)
 if path not in sys.path:
     sys.path.append(path)
 
