@@ -1,5 +1,8 @@
 # -*-coding:utf-8 -*-
 import sqlite3
+from collections import namedtuple
+
+R = namedtuple('R', 'cursor')
 
 
 class Field:
@@ -68,16 +71,12 @@ class Meta(type):
         return type.__new__(mcs, name, bases, attributes)
 
 
-cursor = None
-
-
 def connect_db(func):
     def wrap(*args, **kwargs):
-        global cursor
         conn = sqlite3.connect('web_app.db')
         if func.__name__ == 'get':
             conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
+        R.cursor = conn.cursor()
         with conn:
             try:
                 return func(*args, **kwargs)
@@ -93,26 +92,25 @@ class Model(metaclass=Meta):
 
     @connect_db
     def insert(self):
-        global cursor
         for k, v in self.__mappings__.items():
             default = v.default() if callable(v.default) else v.default
             v.name = getattr(self, k, default)
             self.__dict__[k] = v.name
         columns = self.__fields__
         values = [self.__dict__[k] for k in columns]
-        sql = 'INSERT INTO {} ({}) VALUES (?,?,?,?)'.format(
-            self.__table__, ','.join(columns))
-        cursor.execute(sql, values)
+        sql = 'INSERT INTO {} ({}) VALUES ({})'.format(
+            self.__table__, ','.join(columns),
+            ','.join('?' for _ in range(len(columns))))
+        R.cursor.execute(sql, values)
 
     @connect_db
     def update(self, **kwargs):
-        global cursor
         columns = (k + "='{}'".format(v) for k, v in kwargs.items())
         value = getattr(self, self.__primary_key__)
         sql = 'UPDATE {} SET {} WHERE {}=?'.format(
             self.__table__, ','.join(columns), self.__primary_key__
         )
-        cursor.execute(sql, (value,))
+        R.cursor.execute(sql, (value,))
 
     @classmethod
     @connect_db
@@ -122,30 +120,27 @@ class Model(metaclass=Meta):
         else:
             key, value = kwargs.popitem()
             value = (value,)
-        global cursor
         sql = 'SELECT * FROM {} WHERE {}=?'.format(cls.__table__, key)
-        cursor.execute(sql, value)
-        row = cursor.fetchone()
+        R.cursor.execute(sql, value)
+        row = R.cursor.fetchone()
         return cls(**row) if row else None
 
     @classmethod
     @connect_db
     def delete(cls, key):
-        global cursor
         sql = 'DELETE FROM {} WHERE {}=?'.format(
             cls.__table__, cls.__primary_key__
         )
-        cursor.execute(sql, (key,))
+        R.cursor.execute(sql, (key,))
 
     @classmethod
     @connect_db
     def get_all(cls, **kwargs):
-        global cursor
         if kwargs:
             key, value = kwargs.popitem()
             sql = 'SELECT * FROM {} WHERE {}=?'.format(cls.__table__, key)
-            cursor.execute(sql, (value,))
+            R.cursor.execute(sql, (value,))
         else:
             sql = 'SELECT * FROM {}'.format(cls.__table__)
-            cursor.execute(sql)
-        return (cls.get(i[0]) for i in cursor.fetchall())
+            R.cursor.execute(sql)
+        return (cls.get(i[0]) for i in R.cursor.fetchall())

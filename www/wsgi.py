@@ -3,7 +3,65 @@ import re
 from urllib.parse import parse_qs
 from http.cookies import SimpleCookie
 
-from www.views import urls
+from jinja2 import Environment, PackageLoader
+
+jinja = Environment(loader=PackageLoader('www', 'templates'))
+
+
+class Request:
+    def __call__(self, env):
+        self.env = env
+        self.status = '200 OK'
+        self.header = [('Content-type', 'text/html')]
+        self.content = ''
+        self.file = None
+        self._form = None
+
+    @property
+    def method(self):
+        return self.env['REQUEST_METHOD']
+
+    @property
+    def path(self):
+        return self.env['PATH_INFO']
+
+    @property
+    def referer(self):
+        return self.env.get('HTTP_REFERER')
+
+    @property
+    def form(self):
+        if self._form:
+            return self._form
+        try:
+            size = int(self.env.get('CONTENT_LENGTH'))
+        except ValueError:
+            size = 0
+        body = self.env['wsgi.input'].read(size)
+        dic = parse_qs(body.decode())
+        dic = {k: v[0] for k, v in dic.items() if v}
+        self._form = dic
+        return dic
+
+    def _cookie(self):
+        try:
+            return SimpleCookie(self.env['HTTP_COOKIE'])
+        except KeyError:
+            return SimpleCookie()
+
+    @property
+    def cookie(self):
+        return {k: v.value for k, v in self._cookie().items() if v.value}
+
+    def set_cookie(self, dic=None, **kwargs):
+        cookie = self._cookie()
+        if dic:
+            cookie.load(dic)
+        if kwargs:
+            cookie.load(kwargs)
+        out = cookie.output(header='', sep=' ')
+        for i in out.split():
+            self.header.append(('Set-Cookie', i))
 
 
 class NotFound(Exception):
@@ -14,82 +72,57 @@ class NotFound(Exception):
         return '<h1>404! Not Found This Page:{}</h1>'.format(self.value)
 
 
-class Request:
-    def __init__(self, env):
-        self.env = env
-        self.status = '200 OK'
-        self.header = [('Content-type', 'text/html')]
-        self.path = self.env['PATH_INFO']
-        self.content = ''
-        self.file = None
-        self.cookie = self.get_cookie()
+request = Request()
 
-    @property
-    def method(self):
-        return self.env['REQUEST_METHOD']
 
-    @property
-    def referer(self):
-        try:
-            return self.env['HTTP_REFERER']
-        except ValueError:
-            return self.path
+def render(html, dic=None, **kwargs):
+    template = jinja.get_template(html)
+    dic and kwargs.update(dic)
+    request.content = template.render(**kwargs)
+    return request
 
-    @property
-    def form(self):
-        try:
-            size = int(self.env.get('CONTENT_LENGTH'))
-        except ValueError:
-            size = 0
-        body = self.env['wsgi.input'].read(size)
-        dic = parse_qs(body.decode())
-        dic = {k: v[0] for k, v in dic.items() if v}
-        return dic
 
-    def get_cookie(self):
-        try:
-            return SimpleCookie(self.env['HTTP_COOKIE'])
-        except KeyError:
-            return SimpleCookie()
-
-    def set_cookie(self, dic=None, **kwargs):
-        if dic:
-            self.cookie.load(dic)
-        if kwargs:
-            self.cookie.load(kwargs)
-        out = self.cookie.output(header='', sep=' ')
-        for i in out.split():
-            self.header.append(('Set-Cookie', i))
+def redirect(path):
+    request.status = '303 See Other'
+    request.header.append(('Location', path))
+    return request
 
 
 class Application:
-    def __init__(self, environ, start_response):
-        self.environ = environ
-        self.start = start_response
+    def __init__(self):
+        self.urls = dict()
+        self.signed_cookie = dict()
 
-    def delegate(self):
-        path = self.environ['PATH_INFO']
-        for pattern, func in urls:
-            pattern = '^{}$'.format(pattern)
-            m = re.match(pattern, path)
-            if m:
-                return func(Request(self.environ))
-        raise NotFound(path)
-
-    def __iter__(self):
+    def __call__(self, environ, start_response):
+        request(environ)
         try:
             response = self.delegate()
             assert isinstance(response, Request) is True, 'Invalid Response'
-            self.start(response.status, response.header)
+            start_response(response.status, response.header)
             if response.file:
                 return response.file
             yield response.content.encode()
         except NotFound as e:
-            yield self.not_found(str(e)).encode()
+            start_response('404 Not Found', [('Content-type', 'text/plain')])
+            yield (str(e)).encode()
         except AssertionError as e:
             print(e)
 
-    def not_found(self, message):
-        status = '404 Not Found'
-        self.start(status, [('Content-type', 'text/html')])
-        return message
+    def delegate(self):
+        for pattern, func in self.urls.items():
+            m = re.match(pattern, request.path)
+            if m:
+                groups = m.groups()
+                if groups:
+                    return func(*groups)
+                return func()
+        raise NotFound(request.path)
+
+    def route(self, pattern):
+        pattern = '^{}$'.format(pattern)
+
+        def decorator(func):
+            self.urls[pattern] = func
+            return func
+
+        return decorator

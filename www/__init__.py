@@ -1,10 +1,11 @@
 # -*-coding:utf-8 -*-
+import os
+import sys
 import sqlite3
 
-from jinja2 import Environment, PackageLoader
-
-env = Environment(loader=PackageLoader('www', 'templates'))
-signed_cookie = dict()
+path = os.getcwd()
+if path not in sys.path:
+    sys.path.append(path)
 
 
 def create_db():
@@ -13,7 +14,6 @@ def create_db():
     c.execute('''create table users (
     id char(50) primary key not null,
     password char(50) not null,
-    admin bool not null,
     name char(50) unique not null)''')
     c.execute('''create table blog (
     id char(50) primary key not null,
@@ -24,5 +24,12 @@ def create_db():
     conn.close()
 
 
-if __name__ == '__main__':
-    pass
+try:
+    os.mkdir(os.path.join(path, 'file'))
+except FileExistsError as e:
+    print(e)
+
+try:
+    create_db()
+except sqlite3.OperationalError as e:
+    print(e)

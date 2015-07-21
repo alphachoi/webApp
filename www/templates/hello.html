@@ -50,8 +50,8 @@
             <br>
             <ul>
                 <li><h4>File List</h4></li>
-                {% for file in files %}
-                <li><a href={{'/file/'+file}}>{{ file }}</a></li>
+                {% for file, path in files %}
+                <li><a href={{'/file/'+path}}>{{ file }}</a></li>
                 {% endfor %}
             </ul>
         </div>
