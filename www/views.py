@@ -139,7 +139,7 @@ def download(path):
     size = os.path.getsize(path)
     request.header = [('Content-Type', 'application/x-jpg'),
                       ('Content-length', str(size)),
-                      ('Content-Disposition', 'attachment')]
+                      ('Content-Disposition', 'attachment; filename=xx.jpg')]
     if 'wsgi.file_wrapper' in request.env:
         request.file = request.env['wsgi.file_wrapper'](file, 40960)
     else:
