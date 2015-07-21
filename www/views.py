@@ -126,7 +126,7 @@ def upload():
     if item.file and item.filename:
         filename = os.path.join(os.getcwd(), 'file', item.filename)
         with open(filename, 'wb') as f:
-            for data in iter((lambda: item.file.read(4096)), b''):
+            for data in iter((lambda: item.file.read(40960)), b''):
                 f.write(data)
     return redirect('/hello')
 
@@ -141,15 +141,7 @@ def download(path):
                       ('Content-length', str(size)),
                       ('Content-Disposition', 'attachment')]
     if 'wsgi.file_wrapper' in request.env:
-        request.file = request.env['wsgi.file_wrapper'](file, 4096)
+        request.file = request.env['wsgi.file_wrapper'](file, 40960)
     else:
-        request.file = iter(lambda: file.read(4096), b'')
+        request.file = iter(lambda: file.read(40960), b'')
     return request
-
-
-if __name__ == '__main__':
-    from wsgiref.simple_server import make_server
-
-    server = make_server('', 8080, app)
-    print('Serving HTTP on port 8080...')
-    server.serve_forever()
