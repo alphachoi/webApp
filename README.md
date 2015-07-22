@@ -20,3 +20,11 @@ A simple web framework for fun
 使用namedtuple属性对象传递sqlite3游标对象从而替代全局变量
 
 重构后,代码耦合度降低,业务逻辑书写更加简便
+
+参考资料
+
+ORM部分: http://www.liaoxuefeng.com/ python教程实战部分的ORM实现
+
+wsgi接口: http://anandology.com/blog/how-to-write-a-web-framework-in-python/
+
+url路由: flask源码
