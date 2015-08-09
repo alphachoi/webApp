@@ -150,3 +150,11 @@ def download(path):
 @app.route(r'/resume')
 def resume():
     return render('resume.html')
+
+
+if __name__ == '__main__':
+    from wsgiref.simple_server import make_server
+
+    server = make_server('', 8080, app)
+    print('Serving HTTP on port 8080...')
+    server.serve_forever()
