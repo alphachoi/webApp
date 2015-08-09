@@ -135,7 +135,6 @@ def upload():
 def download(path):
     filename = unquote(path.replace('-', '%'))
     path = os.path.join(os.getcwd(), 'file', filename)
-    file = open(path, 'rb')
     size = os.path.getsize(path)
     if path.endswith('resume.pdf'):
         request.header = [('Content-Type', 'application/pdf'),
@@ -146,11 +145,9 @@ def download(path):
         request.header = [('Content-Type', 'application/x-jpg'),
                           ('Content-length', str(size)),
                           ('Content-Disposition', 'attachment;filename=xx.jpg')]
-    if 'wsgi.file_wrapper' in request.env:
-        request.file = request.env['wsgi.file_wrapper'](file, 1024 * 100)
-    else:
-        request.file = iter(lambda: file.read(1024 * 100), b'')
-    return request
+    with open(path, 'rb') as f:
+        request.file = f.read()
+        return request
 
 
 @app.route(r'/resume')

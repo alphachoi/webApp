@@ -100,7 +100,8 @@ class Application:
             assert isinstance(response, Request) is True, 'Invalid Response'
             start_response(response.status, response.header)
             if response.file:
-                return response.file
+                yield response.file
+                return
             yield response.content.encode()
         except NotFound as e:
             start_response('404 Not Found', [('Content-type', 'text/plain')])
