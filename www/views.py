@@ -137,13 +137,19 @@ def download(path):
     path = os.path.join(os.getcwd(), 'file', filename)
     file = open(path, 'rb')
     size = os.path.getsize(path)
-    request.header = [('Content-Type', 'application/x-jpg'),
-                      ('Content-length', str(size)),
-                      ('Content-Disposition', 'attachment; filename=xx.jpg')]
-    if 'wsgi.file_wrapper' in request.env:
-        request.file = request.env['wsgi.file_wrapper'](file, 40960)
+    if path.endswith('resume.pdf'):
+        request.header = [('Content-Type', 'application/pdf'),
+                          ('Content-length', str(size)),
+                          ('Content-Disposition',
+                           'attachment; filename=dagger178.pdf')]
     else:
-        request.file = iter(lambda: file.read(40960), b'')
+        request.header = [('Content-Type', 'application/x-jpg'),
+                          ('Content-length', str(size)),
+                          ('Content-Disposition', 'attachment;filename=xx.jpg')]
+    if 'wsgi.file_wrapper' in request.env:
+        request.file = request.env['wsgi.file_wrapper'](file, 1024 * 100)
+    else:
+        request.file = iter(lambda: file.read(1024 * 100), b'')
     return request
 
 
