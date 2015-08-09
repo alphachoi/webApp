@@ -145,3 +145,8 @@ def download(path):
     else:
         request.file = iter(lambda: file.read(40960), b'')
     return request
+
+
+@app.route(r'/resume')
+def resume():
+    return render('resume.html')

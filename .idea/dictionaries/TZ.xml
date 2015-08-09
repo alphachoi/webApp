@@ -5,9 +5,12 @@
       <w>blogs</w>
       <w>endblock</w>
       <w>endfor</w>
+      <w>github</w>
+      <w>javascripts</w>
       <w>multipart</w>
       <w>referer</w>
       <w>signin</w>
+      <w>umaru</w>
       <w>wsgi</w>
     </words>
   </dictionary>
