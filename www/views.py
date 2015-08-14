@@ -52,6 +52,10 @@ def hello(blog_id=None):
             return render('hello.html', name=name)
         return redirect('/hello/' + blog.id)
 
+    if blog_id.startswith('File'):
+        blog = Blog(title=blog_id, content="")
+        return render('hello.html', name=name, blog=blog)
+
     blog = Blog.get(blog_id)
     files = os.listdir(os.path.join(os.getcwd(), 'file'))
     files = ((f, quote(f).replace('%', '-')) for f in files)
@@ -125,6 +129,13 @@ def upload():
     item = form['file']
     if item.file and item.filename:
         filename = os.path.join(os.getcwd(), 'file', item.filename)
+        error = ''
+        if os.path.exists(filename):
+            error = 'File already exist'
+        elif int(request.env.get('CONTENT_LENGTH')) > 1024 * 1000:
+            error = 'File is too large'
+        if error:
+            return redirect('/hello/' + error)
         with open(filename, 'wb') as f:
             for data in iter((lambda: item.file.read(1024 * 8)), b''):
                 f.write(data)
