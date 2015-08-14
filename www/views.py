@@ -155,6 +155,11 @@ def resume():
     return render('resume.html')
 
 
+@app.route(r'/s1')
+def resume():
+    return render('s1.html')
+
+
 if __name__ == '__main__':
     from wsgiref.simple_server import make_server
 
