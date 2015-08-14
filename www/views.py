@@ -126,7 +126,7 @@ def upload():
     if item.file and item.filename:
         filename = os.path.join(os.getcwd(), 'file', item.filename)
         with open(filename, 'wb') as f:
-            for data in iter((lambda: item.file.read(40960)), b''):
+            for data in iter((lambda: item.file.read(1024 * 8)), b''):
                 f.write(data)
     return redirect('/hello')
 
@@ -140,14 +140,14 @@ def download(path):
         request.header = [('Content-Type', 'application/pdf'),
                           ('Content-length', str(size)),
                           ('Content-Disposition',
-                           'attachment; filename=dagger178.pdf')]
+                           'attachment; filename=dagger126@126.pdf')]
     else:
         request.header = [('Content-Type', 'application/x-jpg'),
                           ('Content-length', str(size)),
                           ('Content-Disposition', 'attachment;filename=xx.jpg')]
     with open(path, 'rb') as f:
         request.file = f.read()
-        return request
+    return request
 
 
 @app.route(r'/resume')

@@ -5,7 +5,7 @@ from http.cookies import SimpleCookie
 
 from jinja2 import Environment, PackageLoader
 
-jinja = Environment(loader=PackageLoader('www', 'templates'))
+jinja_env = Environment(loader=PackageLoader('www', 'templates'))
 
 
 class Request:
@@ -76,7 +76,7 @@ request = Request()
 
 
 def render(html, dic=None, **kwargs):
-    template = jinja.get_template(html)
+    template = jinja_env.get_template(html)
     dic and kwargs.update(dic)
     request.content = template.render(**kwargs)
     return request

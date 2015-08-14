@@ -1,8 +1,9 @@
 # -*-coding:utf-8 -*-
 import sqlite3
-from collections import namedtuple
 
-R = namedtuple('R', 'cursor')
+from www import get_db_connection
+
+DatabaseConnection = get_db_connection()
 
 
 class Field:
@@ -73,11 +74,7 @@ class Meta(type):
 
 def connect_db(func):
     def wrap(*args, **kwargs):
-        conn = sqlite3.connect('web_app.db')
-        if func.__name__ == 'get':
-            conn.row_factory = sqlite3.Row
-        R.cursor = conn.cursor()
-        with conn:
+        with DatabaseConnection:
             try:
                 return func(*args, **kwargs)
             except sqlite3.IntegrityError as e:
@@ -101,7 +98,7 @@ class Model(metaclass=Meta):
         sql = 'INSERT INTO {} ({}) VALUES ({})'.format(
             self.__table__, ','.join(columns),
             ','.join('?' for _ in range(len(columns))))
-        R.cursor.execute(sql, values)
+        DatabaseConnection.execute(sql, values)
 
     @connect_db
     def update(self, **kwargs):
@@ -110,7 +107,7 @@ class Model(metaclass=Meta):
         sql = 'UPDATE {} SET {} WHERE {}=?'.format(
             self.__table__, ','.join(columns), self.__primary_key__
         )
-        R.cursor.execute(sql, (value,))
+        DatabaseConnection.execute(sql, (value,))
 
     @classmethod
     @connect_db
@@ -121,8 +118,9 @@ class Model(metaclass=Meta):
             key, value = kwargs.popitem()
             value = (value,)
         sql = 'SELECT * FROM {} WHERE {}=?'.format(cls.__table__, key)
-        R.cursor.execute(sql, value)
-        row = R.cursor.fetchone()
+        cursor = DatabaseConnection.cursor()
+        cursor.execute(sql, value)
+        row = cursor.fetchone()
         return cls(**row) if row else None
 
     @classmethod
@@ -131,16 +129,17 @@ class Model(metaclass=Meta):
         sql = 'DELETE FROM {} WHERE {}=?'.format(
             cls.__table__, cls.__primary_key__
         )
-        R.cursor.execute(sql, (key,))
+        DatabaseConnection.execute(sql, (key,))
 
     @classmethod
     @connect_db
     def get_all(cls, **kwargs):
+        cursor = DatabaseConnection.cursor()
         if kwargs:
             key, value = kwargs.popitem()
             sql = 'SELECT * FROM {} WHERE {}=?'.format(cls.__table__, key)
-            R.cursor.execute(sql, (value,))
+            cursor.execute(sql, (value,))
         else:
             sql = 'SELECT * FROM {}'.format(cls.__table__)
-            R.cursor.execute(sql)
-        return (cls.get(i[0]) for i in R.cursor.fetchall())
+            cursor.execute(sql)
+        return (cls.get(i[0]) for i in cursor.fetchall())
