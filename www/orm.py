@@ -1,6 +1,10 @@
 # -*-coding:utf-8 -*-
 import sqlite3
 
+from www import get_db_connection
+
+DatabaseConnection = get_db_connection()
+
 
 class Field:
     def __init__(self, name, column_type, primary_key, default):
@@ -68,17 +72,9 @@ class Meta(type):
         return type.__new__(mcs, name, bases, attributes)
 
 
-cursor = None
-
-
 def connect_db(func):
     def wrap(*args, **kwargs):
-        global cursor
-        conn = sqlite3.connect('web_app.db')
-        if func.__name__ == 'get':
-            conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        with conn:
+        with DatabaseConnection:
             try:
                 return func(*args, **kwargs)
             except sqlite3.IntegrityError as e:
@@ -93,26 +89,25 @@ class Model(metaclass=Meta):
 
     @connect_db
     def insert(self):
-        global cursor
         for k, v in self.__mappings__.items():
             default = v.default() if callable(v.default) else v.default
             v.name = getattr(self, k, default)
             self.__dict__[k] = v.name
         columns = self.__fields__
         values = [self.__dict__[k] for k in columns]
-        sql = 'INSERT INTO {} ({}) VALUES (?,?,?,?)'.format(
-            self.__table__, ','.join(columns))
-        cursor.execute(sql, values)
+        sql = 'INSERT INTO {} ({}) VALUES ({})'.format(
+            self.__table__, ','.join(columns),
+            ','.join('?' for _ in range(len(columns))))
+        DatabaseConnection.execute(sql, values)
 
     @connect_db
     def update(self, **kwargs):
-        global cursor
         columns = (k + "='{}'".format(v) for k, v in kwargs.items())
         value = getattr(self, self.__primary_key__)
         sql = 'UPDATE {} SET {} WHERE {}=?'.format(
             self.__table__, ','.join(columns), self.__primary_key__
         )
-        cursor.execute(sql, (value,))
+        DatabaseConnection.execute(sql, (value,))
 
     @classmethod
     @connect_db
@@ -122,8 +117,8 @@ class Model(metaclass=Meta):
         else:
             key, value = kwargs.popitem()
             value = (value,)
-        global cursor
         sql = 'SELECT * FROM {} WHERE {}=?'.format(cls.__table__, key)
+        cursor = DatabaseConnection.cursor()
         cursor.execute(sql, value)
         row = cursor.fetchone()
         return cls(**row) if row else None
@@ -131,16 +126,15 @@ class Model(metaclass=Meta):
     @classmethod
     @connect_db
     def delete(cls, key):
-        global cursor
         sql = 'DELETE FROM {} WHERE {}=?'.format(
             cls.__table__, cls.__primary_key__
         )
-        cursor.execute(sql, (key,))
+        DatabaseConnection.execute(sql, (key,))
 
     @classmethod
     @connect_db
     def get_all(cls, **kwargs):
-        global cursor
+        cursor = DatabaseConnection.cursor()
         if kwargs:
             key, value = kwargs.popitem()
             sql = 'SELECT * FROM {} WHERE {}=?'.format(cls.__table__, key)

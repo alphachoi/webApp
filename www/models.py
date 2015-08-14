@@ -13,7 +13,6 @@ class User(Model):
 
     id = StringField(primary_key=True, default=uuid_hex, ddl='varchar(50)')
     password = StringField(ddl='varchar(50)')
-    admin = BooleanField()
     name = StringField(ddl='varchar(50)')
 
 
